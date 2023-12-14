@@ -343,7 +343,7 @@ if run_set(6)  % Testing radii
 end
 
 
-%% Get me some estimates for reasonably universal radii search bounds/steps
+%% Get me some radii estimates
 if all(run_set([2 3 4 6]))
     di = [dat2(:); dat3(:); dat4(:); dat6(:)];
     nn = numel(di);
@@ -366,36 +366,17 @@ if all(run_set([2 3 4 6]))
     % Other reference sweep data
     dataDir = '~/Kahuna/data/glaciovolc/coupledSweeps/manuscript_v1_submitted_data';
     sweepFile = 'coupledSweep_2021-09-02_MWIv2_hiLat_n1785_35q_0zw.mat';
+
     summFile = ['outputSummary_' sweepFile];
-    load(fullfile(dataDir,summFile),'qA')
-    
-    % The original R search data for Rowell et al:
-    dataDir = '/Users/crrowell/Kahuna/data/glaciovolc/conduitSweeps/';
-    interpFile = fullfile(dataDir,'conduitV6_fineSweep_n64821_21-05-16_compressedV4_fineV2_rInterpV1.mat');
-    load(interpFile,'Rmax','Rmin','MER','pf')
-    MER = repmat(MER,[1,size(Rmax,2)]);
-    pf  = repmat(pf,[size(Rmax,1),1]);
-    
+    load(fullfile(dataDir,summFile))
+
     figure
     ax1 = subplot(1,1,1);
-    scatter(ax1,log10(MER(:)), Rmax(:)./extrapVentRadius(MER(:)),...
-        50,Rmax(:).*0,'Marker','+')
+    scatter(ax1,Rtest.dP,Rtest.conduit_radius./extrapVentRadius(Rtest.Q),...
+                50,Rtest.phi0,'filled')
     hold on
-    scatter(ax1,log10(MER(:)), Rmin(:)./extrapVentRadius(MER(:)),...
-        50,Rmin(:).*0,'Marker','x')    
-    scatter(ax1,log10(qA.cI.Q(:)),qA.cI.conduit_radius(:)./extrapVentRadius(qA.cI.Q(:)),...
-        50,qA.cI.pf(:).*0+1e7,'Marker','o')
-    hold on
-    scatter(ax1,log10(Rtest.Q),Rtest.conduit_radius./extrapVentRadius(Rtest.Q),...
-                50,Rtest.dP,'filled','Marker','d')
-
-    xlabel('log10(Q)')
-    ylabel('Valid R / predicted R')
-%     scatter(ax1,Rtest.dP,Rtest.conduit_radius./extrapVentRadius(Rtest.Q),...
-%                 50,Rtest.phi0,'filled')
-%     hold on
-%     scatter(ax1,qA.cI.pf(:).*0,qA.cI.conduit_radius(:)./extrapVentRadius(qA.cI.Q(:)),...
-%         50,Rtest.phi0,'filled','Marker','*')
+    scatter(ax1,qA.cI.pf.*0,qA.cI.conduit_radius(:)./extrapVentRadius(qA.cI.Q(:)),...
+        50,Rtest.phi0,'filled','Marker','*')
 end
 
 % radius = conIn3.conduit_radius .* (0.98:0.001:0.992);
