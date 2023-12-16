@@ -4,9 +4,21 @@
 % C Rowell, Sep 2023
 
 clear all; close all
-% Uses Hajimirza conduit model, V6
-codeDir = '~/code/research-projects/hydroVolc/';
+% Uses Hajimirza conduit model, V7
+
+% Mac
+% codeDir = '~/code/research-projects/hydroVolc/';
+% outDir  = '/Users/crrowell/Kahuna/data/myojin/';
+
+% SJ
+codeDir = 'C:\Users\crowell\Documents\GitHub\hydroVolc\';
+outDir = 'C:\Users\crowell\Kahuna\data\myojin\';
+
+
 addpath(genpath(codeDir))
+
+run_test_sweep = false;
+run_full_sweep = true;
 
 %% THE PLAN
 
@@ -65,27 +77,69 @@ sweepList.Zw = [0; 300; Zw; Zw];
 sweepList.Z0 = [6e3; 6e3-300; current_caldera_floor_depth-Zw; max_chamber_depth-Zw];
 
 % For each run, sweep these parameters:
-sweepParams.dP.range = [0 4e6]; % 0 - 40 MPa overpressures
-sweepParams.dP.n     = 21;
+sweepVars.dP.range = [0 4e7]; % 0 - 40 MPa overpressures
+sweepVars.dP.n     = 21;
 
-sweepParams.n0_excess.range = [0 0.7];
-sweepParams.n0_excess.n     = 16;
+% Additional KEY note here: DOMINANT range of quartz-hosted melt inclusion
+% H20 is ~5.5-6.5 wt% H20. Model assumes something SOLUBILITY based, so we
+% should highlight the set of results that correspond to about 6 wt % total
+% for n0 + n0_excess.
+sweepVars.n0_excess.range = [0 0.8];
+sweepVars.n0_excess.n     = 17;
 
 % Do for:
-Q = [1e8 1e9];
-N0 = [1e14 1e15]; % Fix these initial BND's roughly to Q based on early conduit results
+Qset = [1e8 1e9];
+N0set = [1e14 1e15]; % Fix these initial BND's roughly to Q based on early conduit results
                    % '-> (see N_vs_phi_checks.m and bnd_h20_MLRFits.m)
+ 
+% ----------- Search params -------------
+sweepParams.verbose    = false;
+sweepParams.cores      = 8;
+sweepParams.fixed      = 'R';
+descriptor = 'myojin';
+
+% Define conduit range params to search for shooting solutions
+% aRange = [0.6 1.4]; % Fractional range of conduit radius to search?
+
+% Search Tolerances
+% dRminScale  = 0.2e-3;
+% dQminScale  = 0.2e-3;
+% maxIter     = 10;
+
+% OTHER NOTES
+% At 2.2 km conduit length, phi0=31.4 and N0=1.198e14 are good starting
+% values that correspond to the default run...huh
+
+% Other:
+% vent altitude to be set at -Zw (below sea level)
+% conduit depth to be set at (abs chamber depth (bsl) - vent depth (bsl))
+
+% - default atmosphere (only for small pressure contribution of atmosphere)
+% - default conduit friction coefficient
+
+% ------ TEST SET -----
+testSweep.dP.range = [1e6 1e7]; % 0 - 40 MPa overpressures
+testSweep.dP.n     = 4;
+testSweep.n0_excess.range = [0.1 0.3];
+testSweep.n0_excess.n     = 2;
+
+testPars.verbose    = false;
+testPars.cores      = 2;
+testPars.fixed      = 'R';
+testPars.descriptor = 'myojinSweepTest';
 %% MYOJIN COMMON PARAMS ------
-conIn.Z0             = 2200;        % Below vent or sea level? 
-conIn.Zw             = 0;         % (Still processing quench depths, but possibly up to 1km?) can run a range
+% conIn.Z0             = 2200;        % Below vent or sea level? 
+% conIn.Zw             = 0;         % (Still processing quench depths, but possibly up to 1km?) can run a range
 % conIn.T              = 900+273.15;  % Assumed similar to Sumisu (Shukuno et al)
 conIn.phi_frag       = 0.75;
 conIn.rho_melt       = 2350;
-conIn.vh0            = -conIn.Zw; % Vent below sea level
-conIn.conduit_radius = 39.66; % based on initial runs;
 
-conIn.N0             = 1.2e14;           % most juvenile (A13) = 1e9 cm-3 = 1e15 m^-3
-conIn.phi0           = 0.3;           % unsure
+% conIn.vh0            = -conIn.Zw; % Vent below sea level
+% conIn.conduit_radius = 39.66; % based on initial runs;
+
+% conIn.N0             = 1.2e14;           % most juvenile (A13) = 1e9 cm-3 = 1e15 m^-3
+% conIn.phi0           = 0;           % unsure, but 0.3 is about the value 
+                                        % of the juvenile population with spherical bubbles
 % conIn.dP             = 0;           % Chamber overpressure
 
 % Conduit run failure thresholds: DEFAULTS are fine for now
@@ -103,38 +157,41 @@ conIn.composition = struct(... % Weight fractions
     'K2O',  0.81e-2 ...
     );
 
-% ------- SWEEP PARAMS -------
 
-sweepParams.phi0 = []; % Crudely - get this range from manual tests?
-sweepParams.dP = [];
-% sweepParams.N0 = f(phi0)
 
-% At 2.2 km conduit length, phi0=31.4 and N0=1.198e14 are good starting
-% values that correspond to the default run...huh
 
-% Other:
-% vent altitude to be set at -Zw (below sea level)
-% conduit depth to be set at (abs chamber depth (bsl) - vent depth (bsl))
+%% Run TEST set
 
-% - default atmosphere (only for small pressure contribution of atmosphere)
-% - default conduit friction coefficient
- 
+if run_test_sweep
+    cI_test = conIn;
+    cI_test.Zw = min_vent_depth;
+    cI_test.Z0 = current_caldera_floor_depth-min_vent_depth;
 
-% ----------- Search params -------------
-% Define conduit range params to search for shooting solutions
-aRange = [0.5 1.5]; % Fractional range of conduit radius to search?
+    [dat,Rmin,Rmax,outcomeCodes] = conduitParameterSweep(cI_test,testSweep,outDir,testPars);
+end
 
-% Search Tolerances
-dRminScale  = 0.2e-3;
-dQminScale  = 0.2e-3;
-maxIter     = 10;
+%% Full run set
+if run_full_sweep
+    nS = length(Qset).*length(sweepList.Zw);
+    fprintf('Total sweep set: %i\n',nS);
+    for qi = 1:length(Qset)
+        for si = 1:length(sweepList.Zw)
+            
+            cI = conIn;
+            cI.Q  = Qset(qi);
+            cI.N0 = N0set(qi);
+            
+            cI.Zw = sweepList.Zw(si);
+            cI.Z0 = sweepList.Z0(si);
 
-% Original workflow switches - m
-getBaseRuns = false; % Run conduit with no water depth to get base R?
-getQfromR   = true;  % Run with adjusted MER?
+            sweepParams.descriptor = sprintf('%s_Q%i_Z0%i_Zw%i',...
+                descriptor,log10(cI.Q),cI.Z0,cI.Zw);
 
-%%
-
+            fprintf('Sweep %i/%i: %s\n', qi.*si, nS, sweepParams.descriptor)
+            [dat,Rmin,Rmax,outcomeCodes] = conduitParameterSweep(cI,sweepVars,outDir,sweepParams);
+        end
+    end
+end
 
 %% OLD CRAP: Start with a single run, put into a function later
 % conIn.vh0 = -conIn.Zw; % Vent below sea level

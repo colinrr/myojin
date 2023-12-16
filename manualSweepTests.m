@@ -291,8 +291,10 @@ if run_set(2)  % Excess P to reach surface
    plotConduitOutput(dat2(plotsets2(2,:),2))
    set(gcf,'Name',[desc2 sprintf(', Q = %.0e kg/s',dat2(1,2).cI.Q) ])
 
-%    % Test radius search - no known valid cases
-%    [Rlims,cIo,cOo,success] = conduitRadiusFromQ(cI(2),aRange.*aVals(1),'verbose',true);
+   % Test radius search - unbounded
+   [Rlims,cIo,cOo,success] = conduitRadiusFromQ(cI(2),[],'verbose',true);
+%    % Test radius search - bracketed but no known valid cases
+   [Rlims,cIo,cOo,success] = conduitRadiusFromQ(cI(2),aRange.*aVals(1),'verbose',true);
 %    % Test radius search, known valid cases
 %    [Rlims2,cIo2,cOo2,success2] = conduitRadiusFromQ(cI(2),aRange.*aVals(1),...
 %        'Rvalid',aVals(1).*aScale(8),'verbose',true);
