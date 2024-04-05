@@ -1,4 +1,4 @@
-%% ======================================================================
+c%% ======================================================================
 %            SETUP FOR MJYOJIN KNOLL SWEEPS/MONTE CARLO
 % =======================================================================
 % C Rowell, Sep 2023
@@ -7,19 +7,22 @@ clear all; close all
 % Uses Hajimirza conduit model, V7
 
 % Mac
-% codeDir = '~/code/research-projects/hydroVolc/';
-% outDir  = '/Users/crrowell/Kahuna/data/myojin/';
+codeDir = '~/code/research-projects/hydroVolc/';
+outDir  = '/Users/crrowell/Kahuna/data/myojin/mainSweep1/';
 
 % SJ
-codeDir = 'C:\Users\crowell\Documents\GitHub\hydroVolc\';
-outDir = 'C:\Users\crowell\Kahuna\data\myojin\';
+% codeDir = 'C:\Users\crowell\Documents\GitHub\hydroVolc\';
+% outDir = 'C:\Users\crowell\Kahuna\data\myojin\mainSweep1';
 
 
 addpath(genpath(codeDir))
 
-run_test_sweep = false;
-run_full_sweep = true;
-
+run_test_sweep      = false;
+run_full_sweep      = false;
+run_sweep_summary   = true;
+plot_sweep_summary  = true;
+    simplifyCodes   = true;
+    printfigs       = true;
 %% THE PLAN
 
 % Manual baselines?
@@ -192,6 +195,201 @@ if run_full_sweep
         end
     end
 end
+
+%% RUN SWEEP SUMMARY DATA GATHERING AND PLOTS
+
+knownFailsToMap = {'Check Pg, T'}; % update code assignment below if needed
+
+if run_sweep_summary
+    % Get list of sweep files
+    fileList = dir(fullfile(outDir, ['*' descriptor '*']));
+    fileNames = {fileList.name}';
+    
+    % 32 sweeps in N0, dP
+    %  - [2 chamber depths x 7 water depths plus 1 control depths x 2 water
+    %  depths] x 2 MER
+    %  - so control runs gives n = 4 [2x2] plot
+    %  - plus 4 x 7 sweeps over water depth
+    dP = linspace(sweepVars.dP.range(1),sweepVars.dP.range(2),sweepVars.dP.n);
+    n0_excess = linspace(sweepVars.n0_excess.range(1),sweepVars.n0_excess.range(2),sweepVars.n0_excess.n);
+    % -> transform this to porosity?
+    
+    % ----------- FIGURE SETUP ----------
+    if plot_sweep_summary
+        
+
+        % Control sweep figures
+        nr = 2;
+        nc = 2;
+        dx = 0.01;
+        dy = 0.09;
+        ppads = [0.08 0.2 0.11 0.05];
+        cbposCTL = [0.82 0.025];
+        fs = 6;
+        fscb = 6;
+        
+        ctrlFig = figure('position',[10 200 1100 800],'Name','Control runs');
+        for ii=1:4 % 2 Zw x 2 Q
+            ctlax(ii) = tightSubplot(2,2,ii, dx, dy, ppads);
+
+            if ~or(ii==1,ii==8)
+                set(ctlax(ii),'YTickLabel',[])
+            end
+            if ii<8
+                set(ctlax(ii),'XTickLabel',[])
+            end
+        end
+
+        % Main sweep figures
+        nr = 2;
+        nc = 7;
+        dx = 0.01;
+        dy = 0.11;
+        ppads = [0.05 0.15 0.07 0.05];
+        cbpos = [0.86 0.025];
+
+        for qi = 1:2 % 2 Q's
+
+            mjFig(qi) = figure('position',[10 200 1500 600],'Name',sprintf('Q_0 = 10^%.1f kg/s',log10(Qset(qi)))); 
+            for ii=1:14 % 2 Z0 x 7 Zw
+                ax(ii,qi) = tightSubplot(nr,nc,ii, dx, dy, ppads);
+
+                if ~or(ii==1,ii==8)
+                    set(ax(ii),'YTickLabel',[])
+                end
+                if ii<8
+                    set(ax(ii),'XTickLabel',[])
+                end
+            end
+        end
+    end
+    % -------------------------------------
+    
+    for qi = 1:length(Qset)
+        for si = 1:length(sweepList.Zw)
+            thisDescriptor = sprintf('%s_Q%i_Z0%i_Zw%i',...
+                descriptor,log10(Qset(qi)),sweepList.Z0(si),sweepList.Zw(si));
+            
+            fileIdx = find(contains(fileNames,thisDescriptor));
+            
+            load(fullfile(outDir,fileNames{fileIdx}))
+            nSuccess = cellfun(@(x) sum(x>0),outcomeCodes.all); % Check for more than 1 success type
+            if any(nSuccess(:) > 1)
+                pause(0.1)  %Hold up
+            end
+            
+            % FIX UP CODES
+            % Some temporary stuff to retrieve most important code results
+            %   - since maxR is spitting out zero codes instead of negatives
+            maxCode = cellfun(@max,outcomeCodes.all);
+            % Account for new to-be-mapped errors
+            unmappedFails = (maxCode == -22);
+            umi = find(unmappedFails);
+            for um = 1:sum(unmappedFails(:))
+                if ismember(outcomeCodes.failMsg(umi(um)).ME.message,knownFailsToMap)
+                    maxCode(umi(um)) = -21; % update as needed if knownFailsToMap is updated
+                end
+            end
+            % Update
+            codeZero = or(outcomeCodes.maxR < 1,isnan(outcomeCodes.maxR));
+            plotCodes = outcomeCodes.maxR;
+            plotCodes(codeZero) = maxCode(codeZero);
+            
+            % getSweepSummaryHERE when needed
+            
+            if plot_sweep_summary
+
+                % For now just plot outcome codes
+                
+                % Plot CONTROL RUNS
+                if si < 3
+                    axi = (qi-1)*2 + si;
+                    axes(ctlax(axi))
+                    [cmap,cax,cticks,clabels,outcomeIndex,~] = outcomeColorMap(plotCodes,simplifyCodes, false);
+                    imagesc(n0_excess*100,dP/1e6, outcomeIndex )
+                    
+                    colormap(gca,cmap)
+ 
+                    set(gca,'YDir','normal','FontSize',fs)
+                    caxis(cax)
+                    
+                    if qi==1
+                        title(sprintf('Z_e = %.0fm,   Z_0 = %.1fkm',sweepList.Zw(si),sweepList.Z0(si)/1e3))
+                    else
+                        xlabel('Excess n_0 (%)')
+                    end
+                    if si==1
+                        ylabel({sprintf('\\bfQ_0 = 10^{%.1f} kg/s\\rm',log10(Qset(qi))),'','\Delta P (MPa)'})
+                    else
+                        set(gca,'YTickLabel',[])
+                    end
+                    if qi==1 && si==1
+                        ctlcb = colorbar(gca,'location','eastoutside');
+                        caxis(cax);
+                        ctlcb.Ticks = cticks;
+                        ctlcb.TickLabels = clabels;
+
+                        axpos1 = get(ctlax(1),'Position');
+                        axpos2 = get(ctlax(3),'Position');
+                        ctlcb.Position = [cbposCTL(1) axpos2(2) cbposCTL(2) sum(axpos1([2 4]))-axpos2(2)];
+                        ctlcb.FontSize = fscb;
+                    end
+                 
+                % Plot MYOJIN RUNS
+                else
+                    axi = si-2;
+                    axes(ax(axi,qi))
+                    [cmap,cax,cticks,clabels,outcomeIndex,~] = outcomeColorMap(plotCodes,simplifyCodes, false);
+                    imagesc(n0_excess*100,dP/1e6, outcomeIndex )
+
+                    colormap(gca,cmap)
+ 
+                    set(gca,'YDir','normal','FontSize',fs)
+                    caxis(cax)
+                    
+                    title(sprintf('Z_e = %.0fm,   Z_0 = %.1fkm',sweepList.Zw(si),sweepList.Z0(si)/1e3))
+                    if si>=10
+                        xlabel('Excess n_0 (%)')
+                    end
+                    if si==3
+                        ylabel({sprintf('\\bfChamber Depth = %.1f\\rm',chamber_depths(1)),'','\Delta P (MPa)'})
+                    elseif si ==10
+                        ylabel({sprintf('\\bfChamber Depth = %.1f\\rm',chamber_depths(2)),'','\Delta P (MPa)'})
+                    else
+                        set(gca,'YTickLabel',[])
+                    end
+                    if si==3
+                        ctlcb = colorbar(gca,'location','eastoutside');
+                        caxis(cax);
+                        ctlcb.Ticks = cticks;
+                        ctlcb.TickLabels = clabels;
+
+                        axpos1 = get(ax(1),'Position');
+                        axpos2 = get(ax(end),'Position');
+                        ctlcb.Position = [cbpos(1) axpos2(2) cbpos(2) sum(axpos1([2 4]))-axpos2(2)];
+                        ctlcb.FontSize = fscb;
+                    end
+
+                end
+            end
+        end
+    end
+    
+
+    
+end
+
+if plot_sweep_summary && printfigs
+    figure(ctrlFig)
+    printpdf('Control_runs_OutcomeCodes',outDir,[16.5 12])
+    figure(mjFig(1))
+    printpdf('Q_1e8_OutcomeCodes',outDir,[25 12])
+    figure(mjFig(2))
+    printpdf('Q_1e9_OutcomeCodes',outDir,[25 12])
+    
+end
+%% PLOT SUMMARY
+
 
 %% OLD CRAP: Start with a single run, put into a function later
 % conIn.vh0 = -conIn.Zw; % Vent below sea level
