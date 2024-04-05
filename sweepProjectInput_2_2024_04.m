@@ -1,28 +1,29 @@
 %% ======================================================================
 %            SETUP FOR MJYOJIN KNOLL SWEEPS/MONTE CARLO
-% =======================================================================
-% C Rowell, Sep 2023
+% =======================================================================+
+%  -- updated sweep with more control runs, minor bug fixes
+% C Rowell, Apr 2024
 
 clear all; close all
 % Uses Hajimirza conduit model, V7
 
 % Mac
-codeDir = '~/code/research-projects/hydroVolc/';
-outDir  = '/Users/crrowell/Kahuna/data/myojin/mainSweep1/';
+% codeDir = '~/code/research-projects/hydroVolc/';
+% outDir  = '/Users/crrowell/Kahuna/data/myojin/mainSweep1/';
 
 % SJ
-% codeDir = 'C:\Users\crowell\Documents\GitHub\hydroVolc\';
-% outDir = 'C:\Users\crowell\Kahuna\data\myojin\mainSweep1';
+codeDir = 'C:\Users\crowell\Documents\GitHub\hydroVolc\';
+outDir = 'C:\Users\crowell\Kahuna\data\myojin\mainSweep1';
 
 
 addpath(genpath(codeDir))
 
 run_test_sweep      = false;
-run_full_sweep      = false;
-run_sweep_summary   = true;
-plot_sweep_summary  = true;
-    simplifyCodes   = true;
-    printfigs       = true;
+run_full_sweep      = true;
+run_sweep_summary   = false;
+plot_sweep_summary  = false;
+    simplifyCodes   = false;
+    printfigs       = false;
 %% THE PLAN
 
 % Manual baselines?
@@ -64,6 +65,7 @@ plot_sweep_summary  = true;
 %  '-> but shoaled to within about 300m bsl during eruption early stages
 
 max_chamber_depth           = 2200; % Tsuru ea argue this is chamber BOTTOM
+control_chamber_depth       = 6000;
 current_caldera_floor_depth = 1400;  % -'-> and that this is potential chamber top
 min_vent_depth              = 300;
 max_vent_depth              = 1300; % Seems like a reasonable absolute max
@@ -75,9 +77,12 @@ max_vent_depth              = 1300; % Seems like a reasonable absolute max
 Zw = [0 min_vent_depth:200:max_vent_depth]';
 chamber_depths = [current_caldera_floor_depth max_chamber_depth];
 
-% Start sweep list with 2 control runs:
-sweepList.Zw = [0; 300; Zw; Zw];
-sweepList.Z0 = [6e3; 6e3-300; current_caldera_floor_depth-Zw; max_chamber_depth-Zw];
+% Start sweep list with 1 control run at 6 km chamber depth:
+% sweepList.Zw = [0; 300; Zw; Zw];
+% sweepList.Z0 = [6e3; 6e3-300; current_caldera_floor_depth-Zw; max_chamber_depth-Zw];
+
+sweepList.Zw = [Zw; Zw; Zw];
+sweepList.Z0 = [control_chamber_depth; current_caldera_floor_depth-Zw; max_chamber_depth-Zw];
 
 % For each run, sweep these parameters:
 sweepVars.dP.range = [0 4e7]; % 0 - 40 MPa overpressures
@@ -122,12 +127,12 @@ descriptor = 'myojin';
 
 % ------ TEST SET -----
 testSweep.dP.range = [1e6 1e7]; % 0 - 40 MPa overpressures
-testSweep.dP.n     = 4;
-testSweep.n0_excess.range = [0.1 0.3];
+testSweep.dP.n     = 2;
+testSweep.n0_excess.range = [0 0.3];
 testSweep.n0_excess.n     = 2;
 
-testPars.verbose    = false;
-testPars.cores      = 2;
+testPars.verbose    = true;
+testPars.cores      = 1;
 testPars.fixed      = 'R';
 testPars.descriptor = 'myojinSweepTest';
 %% MYOJIN COMMON PARAMS ------
@@ -169,6 +174,8 @@ if run_test_sweep
     cI_test = conIn;
     cI_test.Zw = min_vent_depth;
     cI_test.Z0 = current_caldera_floor_depth-min_vent_depth;
+    
+    cI_test.N0 = N0set(1);
 
     [dat,Rmin,Rmax,outcomeCodes] = conduitParameterSweep(cI_test,testSweep,outDir,testPars);
 end
