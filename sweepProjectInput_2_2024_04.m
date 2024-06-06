@@ -13,7 +13,7 @@ clear all; close all
 
 % SJ
 codeDir = 'C:\Users\crowell\Documents\GitHub\hydroVolc\';
-outDir = 'C:\Users\crowell\Kahuna\data\myojin\mainSweep1';
+outDir = 'C:\Users\crowell\Kahuna\data\myojin\mainSweep2';
 
 
 addpath(genpath(codeDir))
@@ -82,7 +82,7 @@ chamber_depths = [current_caldera_floor_depth max_chamber_depth];
 % sweepList.Z0 = [6e3; 6e3-300; current_caldera_floor_depth-Zw; max_chamber_depth-Zw];
 
 sweepList.Zw = [Zw; Zw; Zw];
-sweepList.Z0 = [control_chamber_depth; current_caldera_floor_depth-Zw; max_chamber_depth-Zw];
+sweepList.Z0 = [control_chamber_depth-Zw; current_caldera_floor_depth-Zw; max_chamber_depth-Zw];
 
 % For each run, sweep these parameters:
 sweepVars.dP.range = [0 4e7]; % 0 - 40 MPa overpressures
@@ -132,7 +132,7 @@ testSweep.n0_excess.range = [0 0.3];
 testSweep.n0_excess.n     = 2;
 
 testPars.verbose    = true;
-testPars.cores      = 1;
+testPars.cores      = 2;
 testPars.fixed      = 'R';
 testPars.descriptor = 'myojinSweepTest';
 %% MYOJIN COMMON PARAMS ------
