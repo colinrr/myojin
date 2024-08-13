@@ -13,16 +13,17 @@ clear all; close all
 
 % SJ
 codeDir = 'C:\Users\crowell\Documents\GitHub\hydroVolc\';
-outDir = 'C:\Users\crowell\Kahuna\data\myojin\mainSweep2';
+% outDir  = 'C:\Users\crowell\Kahuna\data\myojin\mainSweep1'; % Original sweep, 2023
+outDir = 'C:\Users\crowell\Kahuna\data\myojin\mainSweep2'; % New sweep, April 2024
 
 
 addpath(genpath(codeDir))
 
 run_test_sweep      = false;
 run_full_sweep      = true;
-run_sweep_summary   = false;
-plot_sweep_summary  = false;
-    simplifyCodes   = false;
+run_sweep_summary   = true;
+plot_sweep_summary  = true;
+    simplifyCodes   = true;
     printfigs       = false;
 %% THE PLAN
 
@@ -96,7 +97,7 @@ sweepVars.n0_excess.range = [0 0.8];
 sweepVars.n0_excess.n     = 17;
 
 % Do for:
-Qset = [1e8 1e9];
+Qset = 1e9; %[1e8 1e9];
 N0set = [1e14 1e15]; % Fix these initial BND's roughly to Q based on early conduit results
                    % '-> (see N_vs_phi_checks.m and bnd_h20_MLRFits.m)
  
@@ -248,17 +249,17 @@ if run_sweep_summary
         end
 
         % Main sweep figures
-        nr = 2;
+        nr = 3;
         nc = 7;
         dx = 0.01;
         dy = 0.11;
         ppads = [0.05 0.15 0.07 0.05];
         cbpos = [0.86 0.025];
 
-        for qi = 1:2 % 2 Q's
+        for qi = 1:length(Qset) % 2 Q's
 
             mjFig(qi) = figure('position',[10 200 1500 600],'Name',sprintf('Q_0 = 10^%.1f kg/s',log10(Qset(qi)))); 
-            for ii=1:14 % 2 Z0 x 7 Zw
+            for ii=1:length(sweepList.Zw) % 2 Z0 x 7 Zw
                 ax(ii,qi) = tightSubplot(nr,nc,ii, dx, dy, ppads);
 
                 if ~or(ii==1,ii==8)
