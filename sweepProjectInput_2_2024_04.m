@@ -8,19 +8,19 @@ clear all; close all
 % Uses Hajimirza conduit model, V7
 
 % Mac
-% codeDir = '~/code/research-projects/hydroVolc/';
-% outDir  = '/Users/crrowell/Kahuna/data/myojin/mainSweep1/';
+codeDir = '~/code/research-projects/hydroPlume/hydroVolc/';
+outDir  = '/Users/crrowell/Kahuna/data/myojin/mainSweep2/';
 
 % SJ
-codeDir = 'C:\Users\crowell\Documents\GitHub\hydroVolc\';
+% codeDir = 'C:\Users\crowell\Documents\GitHub\hydroVolc\';
 % outDir  = 'C:\Users\crowell\Kahuna\data\myojin\mainSweep1'; % Original sweep, 2023
-outDir = 'C:\Users\crowell\Kahuna\data\myojin\mainSweep2'; % New sweep, April 2024
+% outDir = 'C:\Users\crowell\Kahuna\data\myojin\mainSweep2'; % New sweep, April 2024
 
 
 addpath(genpath(codeDir))
 
 run_test_sweep      = false;
-run_full_sweep      = true;
+run_full_sweep      = false;
 run_sweep_summary   = true;
 plot_sweep_summary  = true;
     simplifyCodes   = true;
@@ -97,7 +97,7 @@ sweepVars.n0_excess.range = [0 0.8];
 sweepVars.n0_excess.n     = 17;
 
 % Do for:
-Qset = 1e9; %[1e8 1e9];
+Qset = [1e8 1e9];
 N0set = [1e14 1e15]; % Fix these initial BND's roughly to Q based on early conduit results
                    % '-> (see N_vs_phi_checks.m and bnd_h20_MLRFits.m)
  
@@ -310,7 +310,7 @@ if run_sweep_summary
                 % For now just plot outcome codes
                 
                 % Plot CONTROL RUNS
-                if si < 3
+                if si < -999 %3
                     axi = (qi-1)*2 + si;
                     axes(ctlax(axi))
                     [cmap,cax,cticks,clabels,outcomeIndex,~] = outcomeColorMap(plotCodes,simplifyCodes, false);
@@ -345,7 +345,7 @@ if run_sweep_summary
                  
                 % Plot MYOJIN RUNS
                 else
-                    axi = si-2;
+                    axi = si; %-2;
                     axes(ax(axi,qi))
                     [cmap,cax,cticks,clabels,outcomeIndex,~] = outcomeColorMap(plotCodes,simplifyCodes, false);
                     imagesc(n0_excess*100,dP/1e6, outcomeIndex )
@@ -391,9 +391,9 @@ if plot_sweep_summary && printfigs
     figure(ctrlFig)
     printpdf('Control_runs_OutcomeCodes',outDir,[16.5 12])
     figure(mjFig(1))
-    printpdf('Q_1e8_OutcomeCodes',outDir,[25 12])
+    printpdf('Q_1e8_sweep2_OutcomeCodes',outDir,[25 12])
     figure(mjFig(2))
-    printpdf('Q_1e9_OutcomeCodes',outDir,[25 12])
+    printpdf('Q_1e9_sweep2_OutcomeCodes',outDir,[25 12])
     
 end
 %% PLOT SUMMARY
