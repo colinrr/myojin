@@ -4,12 +4,13 @@
 %  -- updated sweep with more control runs, minor bug fixes
 % C Rowell, Apr 2024
 
-clear all; close all
+clear all; %close all
 % Uses Hajimirza conduit model, V7
 
 % Mac
 codeDir = '~/code/research-projects/hydroPlume/hydroVolc/';
-outDir  = '/Users/crrowell/Kahuna/data/myojin/mainSweep2/';
+% outDir  = '/Users/crrowell/Kahuna/data/myojin/mainSweep2/';
+outDir  = '/Users/crrowell/Kahuna/data/myojin/mainSweep2/refinedSweep/';
 
 % SJ
 % codeDir = 'C:\Users\crowell\Documents\GitHub\hydroVolc\';
@@ -24,7 +25,7 @@ run_full_sweep      = false;
 run_sweep_summary   = true;
 plot_sweep_summary  = true;
     simplifyCodes   = true;
-    printfigs       = false;
+    printfigs       = true;
 %% THE PLAN
 
 % Manual baselines?
@@ -310,7 +311,7 @@ if run_sweep_summary
                 % For now just plot outcome codes
                 
                 % Plot CONTROL RUNS
-                if si < -999 %3
+                if si < -999 %3 % Scrap these plots
                     axi = (qi-1)*2 + si;
                     axes(ctlax(axi))
                     [cmap,cax,cticks,clabels,outcomeIndex,~] = outcomeColorMap(plotCodes,simplifyCodes, false);
@@ -378,23 +379,32 @@ if run_sweep_summary
                         ctlcb.FontSize = fscb;
                     end
 
+                    allOutcomeCodes.(thisDescriptor) = plotCodes;
+                    simplePlotIndex.(thisDescriptor) = outcomeIndex;
                 end
             end
         end
     end
     
-
-    
+    allOutcomeCodes.dataDir = outDir;
+    allOutcomeCodes.fileNames = fileNames;
+    allOutcomeCodes.n0_excess = n0_excess;
+    allOutcomeCodes.dP = dP;
+    simplePlotIndex.dataDir = outDir;
+    simplePlotIndex.fileNames = fileNames;
+    simplePlotIndex.n0_excess = n0_excess;
+    simplePlotIndex.dP = dP;    
 end
 
 if plot_sweep_summary && printfigs
-    figure(ctrlFig)
-    printpdf('Control_runs_OutcomeCodes',outDir,[16.5 12])
+%     figure(ctrlFig)
+%     printpdf('Control_runs_OutcomeCodes',outDir,[16.5 12])
     figure(mjFig(1))
     printpdf('Q_1e8_sweep2_OutcomeCodes',outDir,[25 12])
     figure(mjFig(2))
     printpdf('Q_1e9_sweep2_OutcomeCodes',outDir,[25 12])
     
+    save(fullfile(outDir,'outcomeCodeSummary'),'allOutcomeCodes','simplePlotIndex')
 end
 %% PLOT SUMMARY
 
