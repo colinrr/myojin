@@ -26,7 +26,10 @@
 % refined sweep
 outDir  = '/Users/crrowell/Kahuna/data/myojin/mainSweep2/refinedSweep/';
 % outDir  = '/Users/crrowell/Kahuna/data/myojin/mainSweep2/refinedSweep/pass2/';
-foi = '2024-04-26_myojin_Q8_Z05100_Zw900_357n_dP_21_n0_excess_17.mat' ;
+% foi = '2024-04-26_myojin_Q8_Z05100_Zw900_357n_dP_21_n0_excess_17.mat' ;
+foi = '2024-04-26_myojin_Q8_Z04900_Zw1100_357n_dP_21_n0_excess_17.mat' ;
+% foi = '2024-04-26_myojin_Q8_Z01500_Zw700_357n_dP_21_n0_excess_17.mat' ;
+
 ip = [1 16; 3 16; 4 16;];
 % -------------
 
