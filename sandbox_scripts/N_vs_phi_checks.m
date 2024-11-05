@@ -12,6 +12,9 @@ sweepFile = 'coupledSweep_2021-09-02_MWIv2_hiLat_n1785_35q_0zw.mat';
 
 summFile = ['outputSummary_' sweepFile];
 
+figDir = '/Users/crrowell/Kahuna/phd-docs/research/myojin_knoll/figures/';
+savefigs = true;
+
 %% Do the thing
 
 load(fullfile(dataDir,sweepFile))
@@ -77,17 +80,21 @@ end
 % plot(axC(5),[1e-10 1e16],zNuc(26,1).*[1 1]/1e3,'--k')
 
 %% ----- Plot results -----
-fs = 13;
-fscb = 12;
+fs = 9;
+fscb = 8;
 dx = 0.18;
 dy = 0.07;
-ppads = [.08 .09 0.06 0.02];
+ppads = [.1 .1 0.06 0.02];
 nr = 3;
 nc = 2;
 lw = 2;
 lw2 = 1.0;
 
-oDims  = [18 20];
+cbpos_left = 0.42;
+cbpos_right = 0.91;
+cb_width = 0.016;
+
+oDims  = [20 24];
 oUnits = 'centimeters';
 dpi    = 300;
 
@@ -102,6 +109,7 @@ axes(cax(1))
 imagesc(gca,Q0,Zw,zNuc'/1e3); %shading flat
 set(gca,'YDir','normal')
 set(gca,'Xscale','log','XTick',10.^round(min(logQ0):max(logQ0)))
+set(gca,'FontSize',fs)
 xlabel('Control MER, $Q_0$ (kg/s)','Interpreter','Latex')
 ylabel('Water Depth, $Z_e$ (m)','Interpreter','Latex')
 colormap(gca,plasma)
@@ -110,12 +118,13 @@ cb.Label.String = '1st Nucleation Depth (km)';
 cb.Label.Interpreter = 'Latex';
 cb.FontSize = fscb;
 apos = get(gca,'Position');
-cb.Position = [0.42 apos(2) .016 apos(4)];
+cb.Position = [cbpos_left apos(2) cb_width apos(4)];
 
 %  --------- Initial dissolved h20 --------- 
 axes(cax(2))
 imagesc(gca,Q0,Zw,h20_0'*1e2); %shading flat
 set(gca,'YDir','normal')
+set(gca,'FontSize',fs)
 set(gca,'Xscale','log','XTick',10.^round(min(logQ0):max(logQ0)))
 xlabel('Control MER, $Q_0$ (kg/s)','Interpreter','Latex')
 ylabel('Water Depth, $Z_e$ (m)','Interpreter','Latex')
@@ -125,7 +134,7 @@ cb.Label.String = 'Initial dissolved H$_2$O ($wt.\%$)';
 cb.Label.Interpreter = 'Latex';
 cb.FontSize = fscb;
 apos = get(gca,'Position');
-cb.Position = [0.92 apos(2) .016 apos(4)];
+cb.Position = [cbpos_right apos(2) cb_width apos(4)];
 
 %  --------- BND after 1st nuc vs Frac exsolved after 1st nucl --------- 
 axes(cax(3))
@@ -157,7 +166,7 @@ cb.FontSize = fscb;
 hold on
 grid on
 apos = get(gca,'Position');
-cb.Position = [0.42 apos(2) .016 apos(4)];
+cb.Position = [cbpos_left apos(2) cb_width apos(4)];
 
 % --------- Fraction exsolved H20 vs Por after 1st nuc --------- 
 axes(cax(4))
@@ -188,7 +197,7 @@ cb.FontSize = fscb;
 hold on
 grid on
 apos = get(gca,'Position');
-cb.Position = [0.92 apos(2) .016 apos(4)];
+cb.Position = [cbpos_right apos(2) cb_width apos(4)];
 
 % ---------  BND vs pm --------- 
 axes(cax(5))
@@ -220,7 +229,7 @@ cb.FontSize = fscb;
 hold on
 grid on
 apos = get(gca,'Position');
-cb.Position = [0.42 apos(2) .016 apos(4)];
+cb.Position = [cbpos_left apos(2) cb_width apos(4)];
 
 % ---------  BND vs Supersaturation --------- 
 axes(cax(6))
@@ -228,6 +237,7 @@ axes(cax(6))
 imagesc(gca,Q0,Zw,(h20_Nuc./CsolNuc)'); %shading flat
 set(gca,'YDir','normal')
 set(gca,'Xscale','log','XTick',10.^round(min(logQ0):max(logQ0)))
+set(gca,'FontSize',fs)
 xlabel('Control MER, $Q_0$ (kg/s)','Interpreter','Latex')
 ylabel('Water Depth, $Z_e$ (m)','Interpreter','Latex')
 colormap(gca,plasma)
@@ -236,9 +246,21 @@ cb.Label.String = 'Supersaturation after 1st nucleation';
 cb.Label.Interpreter = 'Latex';
 cb.FontSize = fscb;
 apos = get(gca,'Position');
-cb.Position = [0.92 apos(2) .016 apos(4)];
+cb.Position = [cbpos_right apos(2) cb_width apos(4)];
+
+if savefigs
+    oname = 'Rowell_ea_2022_nucleation_&_exsolution_results';
+    printpdf(oname,figDir,oDims,oUnits)
+end
+
 
 %% Properties at 2200m
+
+oDims  = [18 16];
+oUnits = 'centimeters';
+ppads = [.1 .1 0.09 0.02];
+dx = 0.18;
+dy = 0.09;
 
 nr = 2;
 nc = 2;
@@ -277,7 +299,7 @@ cb.FontSize = fscb;
 hold on
 grid on
 apos = get(gca,'Position');
-cb.Position = [0.42 apos(2) .016 apos(4)];
+cb.Position = [cbpos_left apos(2) cb_width apos(4)];
 
 % ---------  Frag yet? --------- 
 axes(cax(2))
@@ -293,7 +315,7 @@ cb.Label.String = 'Frag below 2.2km?';
 cb.Label.Interpreter = 'Latex';
 cb.FontSize = fscb;
 apos = get(gca,'Position');
-cb.Position = [0.92 apos(2) .016 apos(4)];
+cb.Position = [cbpos_right apos(2) cb_width apos(4)];
 
 % ---------  BND vs pm --------- 
 axes(cax(3))
@@ -325,7 +347,7 @@ cb.FontSize = fscb;
 hold on
 grid on
 apos = get(gca,'Position');
-cb.Position = [0.42 apos(2) .016 apos(4)];
+cb.Position = [cbpos_left apos(2) cb_width apos(4)];
 
 % ---------  Fraction exsolved volatiles --------- 
 axes(cax(4))
@@ -345,10 +367,22 @@ cb.Label.String = 'Fraction exsolved H$_2$O @ 2.2km';
 cb.Label.Interpreter = 'Latex';
 cb.FontSize = fscb;
 apos = get(gca,'Position');
-cb.Position = [0.92 apos(2) .016 apos(4)];
+cb.Position = [cbpos_right apos(2) cb_width apos(4)];
 % caxis([1.0 1.2])
 
-%% Doing a check on excess volatiles and solubility
+if savefigs
+    oname = 'Rowell_ea_2022_gas_props_at_2200m';
+    printpdf(oname,figDir,oDims,oUnits)
+end
+
+%% Doing a check on excess volatiles and solubility at z=2200m
+
+oDims  = [18 12];
+oUnits = 'centimeters';
+% ppads = [.1 .1 0.09 0.02];
+% dx = 0.18;
+% dy = 0.09;
+
 qi = 26;
 P0 = zeros(length(Zw));
 for zi=1:length(Zw)
@@ -380,6 +414,9 @@ set(gca,'FontSize',fs)
 hold on
 plot((2400*9.81*2200)/1e6*[1 1],[0 max(h2oSol(:))],'--k')
 plot((2400*9.81*6000)/1e6*[1 1],[0 max(h2oSol(:))],'--k')
+text((2400*9.81*2200)/1e6 +4, 0.01, sprintf('z = 2200 m'),'Rotation',90,'FontSize',fs)
+text((2400*9.81*6000)/1e6 -6 , 0.01, sprintf('z = 6000 m'),'Rotation',90,'FontSize',fs)
+title('Solubility profile')
 
 subplot(1,2,2)
 plot([0.35 0.5],[0.35 0.5],'--k')
@@ -391,6 +428,10 @@ xlabel('Predicted exolved fraction')
 ylabel('Modeled exsolved fraction')
 legend({'1-1','Exsolved','Exsolved + supersat'},'location','northwest')
 set(gca,'FontSize',fs)
+title('After ascent: 6000 m -> 2200 m')
 
-
+if savefigs
+    oname = 'Rowell_ea_2022_predicted_solubility_and_exsolution_at_2200m';
+    printpdf(oname,figDir,oDims,oUnits)
+end
 

@@ -5,10 +5,10 @@ Created on Thu Jun 27 17:10:46 2024
 
 @author: crrowell
 """
+from typing import Union
 
 import scipy.io as spio
 import numpy as np
-from typing import Union
 
 
 def matfile_struct_to_dict(matfile: str, var_name: str) -> dict:

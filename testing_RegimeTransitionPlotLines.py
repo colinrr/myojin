@@ -6,18 +6,21 @@ Created on Sat Sep 21 12:23:48 2024
 @author: crrowell
 """
 
-import mat_tools as mat
-import process_conduit_outcomes as po
+
 from os.path import join
+
+# import numpy as np
 import matplotlib.pyplot as plt
-from scipy.ndimage import gaussian_filter
-from skimage import measure
-from skimage.transform import resize
-import numpy as np
-from scipy.interpolate import RegularGridInterpolator
+# from scipy.ndimage import gaussian_filter
+# from skimage import measure
+# from skimage.transform import resize
+# from scipy.interpolate import RegularGridInterpolator
 
+import myojin_python.mat_tools as mat
+import myojin_python.process_conduit_outcomes as po
+from myojin_python.config import DATA_DIR
 
-dataDir   = '/Users/crrowell/Kahuna/data/myojin/mainSweep2/refinedSweep/'
+dataDir   = DATA_DIR / 'refinedSweep/'
 codesFile = 'outcomeCodeSummary.mat'
 
 # % Test file
@@ -25,10 +28,12 @@ codesFile = 'outcomeCodeSummary.mat'
 foi = 'myojin_Q8_Z0900_Zw500';
 
 max_P = 2e7 # Max overpressure
-sigma = 2.5
+sigma = 2.0 # Gaussian filter size (pix)
+
+
 ## ------------------------------------------------------------------------##
 
-
+# --------  PULL DATA --------
 matfile = join(dataDir,codesFile)
 
 all_outcome_codes = mat.matfile_struct_to_dict(matfile, 'allOutcomeCodes')
@@ -42,7 +47,7 @@ outcome_codes = all_outcome_codes[foi]
 plot_codes = simple_plot_codes[foi]
 
 
-
+# --------  PROCESSING WORKFLOW --------
 outcome_codes2, plot_codes2, P2 = po.process_outcome_codes(outcome_codes, plot_codes, P, max_P=max_P)
 
 # Testing method to rescale image and get contours
@@ -59,9 +64,9 @@ contours, contours_xy, unique_codes = po.get_label_contours(plot_codes2, n0, P2,
 
 
 
-
-print(outcome_codes.shape)
-print(P.shape)
+# -------- PLOTTING/REPORTING --------
+# print(outcome_codes.shape)
+# print(P.shape)
 
 # plt.imshow(plot_codes)
 
