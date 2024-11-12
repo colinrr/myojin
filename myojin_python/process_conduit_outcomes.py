@@ -62,7 +62,15 @@ def process_outcome_codes(outcome_codes: np.ndarray, plot_codes: np.ndarray, P, 
     them to create a 'clean' image
       - scrub/fill invalid and errored codes where appropriate (e.g. for known issue
         with the conduit search routine)
+      - taking invalid effusive as valid effusive (since we have shown this is 
+            generally true for the solution searches)
+      - taking all fragmenting results as 'validExplosive'
       - crop the regime space to a more imited pressure range
+      --> Therefore ALL PLOT codes are now any of:
+              3 : fragmenting/explosive
+              1 : effusive
+              0 : intrusive
+             
 
     Parameters
     ----------
@@ -95,8 +103,10 @@ def process_outcome_codes(outcome_codes: np.ndarray, plot_codes: np.ndarray, P, 
     
     # 2 replace validFragPressBalanced with validExplosive, since we are mainly
     # interested in the explosive-effusive transition.
-    valid_press_bal = outcome_codes==2
-    outcome_codes[valid_press_bal]==3
+    # valid_press_bal = outcome_codes == 2
+    # outcome_codes[valid_press_bal] = 3
+    valid_expl = plot_codes == 3
+    plot_codes[valid_expl] = 2
     
     # 2 Nearest neighbour interp to replace errored results?
     plot_codes = clear_error_codes(outcome_codes, plot_codes)
@@ -236,15 +246,21 @@ def get_label_contours(img: np.ndarray, x: np.ndarray, y: np.ndarray, sigma: flo
     unique_codes = np.unique(img)
     contours = []
     contours_xy = []
+    
+    contours = {str(int(code)): None for code in unique_codes}
     for code in unique_codes:
         mask = img_us==code
         contour   = find_contours(gaussian_filter(mask.astype(float), sigma), 0.5)
-        contours += contour
+        # contours += contour
         xy = []
         for subcon in contour:
             xy.append(np.array([ denormalizer(X_interp(subcon) , x_min, x_rng) , 
                                 denormalizer(Y_interp(subcon) , y_min, y_rng) ]).transpose())
         contours_xy += xy
+        if xy:
+            contours[str(int(code))] = xy
+        else:
+            contours[str(int(code))] = None
     
 
     return contours, contours_xy, unique_codes

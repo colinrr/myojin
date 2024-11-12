@@ -19,6 +19,7 @@ dependencies:
   - scipy
   - scikit-image
   - spyder-kernels
+  - matplotlib-label-lines
   - pip:
     - python-dotenv
     - -e .

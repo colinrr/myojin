@@ -21,7 +21,7 @@ SIMPLIFIED_OUTCOME_CSV = PROJ_ROOT / "simplifiedOutComeCodeTable.csv"
 
 
 REPORTS_DIR = PROJ_ROOT / "reports"
-FIGURES_DIR = REPORTS_DIR / "figures"
+FIGURES_DIR = PROJ_ROOT / "figures"
 
 # # If tqdm is installed, configure loguru with tqdm.write
 # # https://github.com/Delgan/loguru/issues/135
