@@ -13,7 +13,7 @@ sweepFile = 'coupledSweep_2021-09-02_MWIv2_hiLat_n1785_35q_0zw.mat';
 summFile = ['outputSummary_' sweepFile];
 
 figDir = '/Users/crrowell/Kahuna/phd-docs/research/myojin_knoll/figures/';
-savefigs = true;
+savefigs = false;
 
 %% Do the thing
 

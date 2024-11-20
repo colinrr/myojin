@@ -10,8 +10,8 @@ DATA_DIR = Path("/Users/crrowell/Kahuna/data/myojin/mainSweep2")
 
 SECONDARY_DATA_DIR = PROJ_ROOT / "data"
 
-OUTCOME_CSV = PROJ_ROOT / "OutComeCodeTable.csv"
-SIMPLIFIED_OUTCOME_CSV = PROJ_ROOT / "simplifiedOutComeCodeTable.csv"
+OUTCOME_CSV = PROJ_ROOT / "references/OutComeCodeTable.csv"
+SIMPLIFIED_OUTCOME_CSV = PROJ_ROOT / "references/simplifiedOutComeCodeTable.csv"
 
 
 # RAW_DATA_DIR = SECONDARY_DATA_DIR / "raw"

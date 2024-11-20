@@ -21,7 +21,24 @@ import myojin_python.config as config
 
 
 # Lookup functions for conduit outcome codes as a reference
-def get_outcome_code_table(display=True, simplified=True):
+def get_outcome_code_table(display=True, simplified=True) -> pd.DataFrame:
+    """
+    Return/display conduit model outcome codes table.
+
+    Parameters
+    ----------
+    display : TYPE, optional
+        Print table on funciton call? The default is True.
+    simplified : TYPE, optional
+        True = Display simplified plot codes, False = display raw model outcome
+        codes. The default is True.
+
+    Returns
+    -------
+    table : Pandas Dataframe
+        Table of outcome codes and their description.
+
+    """
     if simplified:
         table = pd.read_csv(config.SIMPLIFIED_OUTCOME_CSV, index_col='Row')
     else:
@@ -60,7 +77,7 @@ def process_outcome_codes(outcome_codes: np.ndarray, plot_codes: np.ndarray, P, 
     """
     Take a 2D array of outcome codes from conduit a parameter sweep, and process
     them to create a 'clean' image
-      - scrub/fill invalid and errored codes where appropriate (e.g. for known issue
+      - scrub/fill invalid and errored PLOT codes where appropriate (e.g. for known issue
         with the conduit search routine)
       - taking invalid effusive as valid effusive (since we have shown this is 
             generally true for the solution searches)
@@ -98,7 +115,7 @@ def process_outcome_codes(outcome_codes: np.ndarray, plot_codes: np.ndarray, P, 
     # most/all invalid effusive cases resulted from a lack of search precision,
     # not lack of viable solution - 2024-09-21
     invalid_effusive = outcome_codes==-1
-    outcome_codes[invalid_effusive] = 1
+    # outcome_codes[invalid_effusive] = 1
     plot_codes[invalid_effusive] = 1
     
     # 2 replace validFragPressBalanced with validExplosive, since we are mainly
