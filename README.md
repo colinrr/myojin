@@ -25,7 +25,7 @@ Scripts and function to process output of volcanic conduit model parameter sweep
 │
 ├── figure_scripts <- Matlab scripts that build manuscript and other key figures
 │
-├── environment.yml    <- The requirements file for reproducing the analysis environment
+├── environment.yml    <- The requirements file for reproducing the python analysis environment
 │
 ├── set_project_path.m  <- RUN THIS from its directory to add project directories to the matlab path
 │
