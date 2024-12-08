@@ -146,7 +146,7 @@ TODO - preamble and parameter choice
 
 ## Conduit Model Outcome Codes
 
-The conduit model contains a class called OutcomeCode, which interprets the physical result of the simulation. E.g. as explosive and overpressured at the vent, explosive and pressure balanced at the vent, effusive, or an as erroneous results, and so on. The codes come in 2 verions:
+The conduit model contains a class called OutcomeCode, which interprets the physical result of the simulation. E.g. as explosive and overpressured at the vent, explosive and pressure balanced at the vent, effusive, or an as erroneous result, and so on. The outcome codes come in 2 versions:
   1) Raw model outcome codes. These are fairly fine grained and allow for detailed interpretation of results, but are a bit difficult to visualize.
   2) Simplified or Plot codes, in which various raw codes have been lumped together to create a simplified description for easy interpretation and plotting.
 
