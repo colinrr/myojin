@@ -40,7 +40,7 @@ outcomes = {'OutcomeCode','simpleCode'};                            % Conduit Ou
 cI_pars = {'Q','Z0','Zw','dP','n0_excess','N0','conduit_radius'};   % Scalar input parameters
 cO_pars = {'Zf','C0'};                                              % Scalar output parameters
 output_pars = {'Cm_0','Psat','t_ascent','dP_dt_bar',...    % Output fields needing specific retreival methods
-    'BND_f','N_nucl','Z_nucl','dZ_nucl','phi_0','phi_f'};
+    'BND_f','N_nucl','Z_nucl','dZ_nucl','phi_0','phi_f','n0_total'};
 calc_pars = {'Z_total'};                                            % Post-processing calculations
 
 n_total = 41*17*21; % All simulations
@@ -197,6 +197,7 @@ for fi = 1:length(fn)
     %     dZ_nucl       : Difference between fragmentation depth and nucleation depth (if fragmentation occurred)
     %     phi_0         : INITIAL porosity
     %     phi_f         : FINAL porosity (at surface)
+    %     n0_total      : Excess gas plus initial solubility = bulk H20 content
     [temps{1:length(output_pars)}] = deal(f_blank);
     temps = cell2struct(temps',output_pars);
     temps.Z_nucl = num2cell(f_blank);
@@ -210,6 +211,7 @@ for fi = 1:length(fn)
             temps.Psat(jj)      = dat(jj).cO.psat(1) - dat(jj).cI.pf;
             temps.t_ascent(jj)  = dat(jj).cO.t(end);
             temps.phi_0(jj)     = dat(jj).cO.porosity(1);
+            temps.n0_total(jj)  = (dat(jj).cI.n0_excess+1).*dat(jj).cO.Cm(1);
             
             try
                 porosity_in = internalPorosity(dat(jj).cO);

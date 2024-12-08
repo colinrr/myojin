@@ -1,17 +1,19 @@
 %% Build some plots from Myojin conduit sweeps data table
+%
+% Tests plots from Nov 2024
 
 clear all; close all
-run ../config % Assumes run from local path
+run config % Assumes run from local file path or that the project root is in the MATLAB path
 
 outputTableFile = fullfile(DATA_DIR,'ConduitSweepsDataTable.mat');
 
-printFigs = true;
+printFigs = false;
 %% Load the table
 disp('Loading data table...')
 load(outputTableFile)
 
 disp('Making plots...')
-%% Pair plots
+%% Pair plots for all the major variables
 fname = 'Sweep variable pair plots';
 
 % Continous variables
@@ -341,6 +343,8 @@ for ai = 1:nc
     msz(Tsub.Q==1e8) = Qsz(1);
     msz(Tsub.Q==1e9) = Qsz(2);
     
+    % Secondary filter to get just a few key model results
+    
     
 % --- Psat vs phi ----
 %     for ci = 1:length(sCodes)
@@ -381,6 +385,10 @@ for ai = 1:nc
 % end
 
 % --- Psat vs n0 ---- MONEY
+% yname = 'Total gass mass fraction';
+% xname = {'Supersaturation Pressure','P_{H_2O} - P_f (MPa)'};
+% oname = 'sweepScatter_n_tot_vs_Psat';
+% legax = 1;
 %     for ci = 1:length(sCodes)
 %         codeSub = (Tsub.simpleCode==sCodes(ci) & ~(Tsub.N_nucl==2 & Tsub.simpleCode>=1));
 %         scatter(Tsub.Psat(codeSub).*Pscale,(Tsub.n0_excess(codeSub)+1).*Tsub.Cm_0(codeSub),msz(codeSub),Tsub.Zw(codeSub),...
@@ -402,54 +410,54 @@ for ai = 1:nc
 %     end
     
 % --- Psat vs Zf ----
-%     for ci = 1:length(sCodes)
-%         codeSub = (Tsub.simpleCode==sCodes(ci) & ~(Tsub.N_nucl==2 & Tsub.simpleCode>=1));
-%         scatter(Tsub.Psat(codeSub).*Pscale,Tsub.Zf(codeSub),msz(codeSub),Tsub.Zw(codeSub),...
-%             'filled',codeMarkers{ci},...
-%             'MarkerFaceAlpha',Nuc_alpha(1))
-%         %             'MarkerEdgeColor','k',...
-% %             'MarkerEdgeAlpha',codeAlpha(ci),...
-%         hold on
-%     end
-%     
-%     % Do 2nd nucleation events 2nd
-%     for ci = 1:length(sCodes)
-%         codeSub = (Tsub.simpleCode==sCodes(ci) & (Tsub.N_nucl==2 & Tsub.simpleCode>=1));
-%         scatter(Tsub.Psat(codeSub).*Pscale,Tsub.Zf(codeSub),msz(codeSub),Tsub.Zw(codeSub),...
-%             'filled',codeMarkers{ci},...
-%             'MarkerEdgeColor','k',...
+    for ci = 1:length(sCodes)
+        codeSub = (Tsub.simpleCode==sCodes(ci) & ~(Tsub.N_nucl==2 & Tsub.simpleCode>=1));
+        scatter(Tsub.Psat(codeSub).*Pscale,Tsub.Zf(codeSub),msz(codeSub),Tsub.Zw(codeSub),...
+            'filled',codeMarkers{ci},...
+            'MarkerFaceAlpha',Nuc_alpha(1))
+        %             'MarkerEdgeColor','k',...
 %             'MarkerEdgeAlpha',codeAlpha(ci),...
-%             'MarkerFaceAlpha',Nuc_alpha(2))
-%     end
+        hold on
+    end
+    
+    % Do 2nd nucleation events 2nd
+    for ci = 1:length(sCodes)
+        codeSub = (Tsub.simpleCode==sCodes(ci) & (Tsub.N_nucl==2 & Tsub.simpleCode>=1));
+        scatter(Tsub.Psat(codeSub).*Pscale,Tsub.Zf(codeSub),msz(codeSub),Tsub.Zw(codeSub),...
+            'filled',codeMarkers{ci},...
+            'MarkerEdgeColor','k',...
+            'MarkerEdgeAlpha',codeAlpha(ci),...
+            'MarkerFaceAlpha',Nuc_alpha(2))
+    end
     
 % --- Psat vs dPdt ----
-yname = 'Avg. Decompression Rate (MPa s^{-1})';
-xname = {'Supersaturation Pressure','P_{H_2O} - P_f (MPa)'};
-oname = 'sweepScatter_dPdt_vs_Psat';
-legax = 1;
-for ci = 1:length(sCodes)
-    codeSub = (Tsub.simpleCode==sCodes(ci) & ~(Tsub.N_nucl==2 & Tsub.simpleCode>=1));
-    scatter(Tsub.Psat(codeSub).*Pscale,Tsub.dP_dt_bar(codeSub),msz(codeSub),Tsub.Zw(codeSub),...
-        'filled',codeMarkers{ci},...
-        'MarkerFaceAlpha',Nuc_alpha(1))
-    %             'MarkerEdgeColor','k',...
-%             'MarkerEdgeAlpha',codeAlpha(ci),...
-    hold on
-end
-% Do 2nd nucleation events 2nd
-for ci = 1:length(sCodes)
-    codeSub = (Tsub.simpleCode==sCodes(ci) & (Tsub.N_nucl==2 & Tsub.simpleCode>=1));
-    scatter(Tsub.Psat(codeSub).*Pscale,Tsub.dP_dt_bar(codeSub),msz(codeSub),Tsub.Zw(codeSub),...
-        'filled',codeMarkers{ci},...
-        'MarkerEdgeColor',[0.3 0.3 0.3],...
-        'MarkerEdgeAlpha',codeAlpha(ci),...
-        'MarkerFaceAlpha',Nuc_alpha(2))
-end
+% yname = 'Avg. Decompression Rate (MPa s^{-1})';
+% xname = {'Supersaturation Pressure','P_{H_2O} - P_f (MPa)'};
+% oname = 'sweepScatter_dPdt_vs_Psat';
+% legax = 1;
+% for ci = 1:length(sCodes)
+%     codeSub = (Tsub.simpleCode==sCodes(ci) & ~(Tsub.N_nucl==2 & Tsub.simpleCode>=1));
+%     scatter(Tsub.Psat(codeSub).*Pscale,Tsub.dP_dt_bar(codeSub),msz(codeSub),Tsub.Zw(codeSub),...
+%         'filled',codeMarkers{ci},...
+%         'MarkerFaceAlpha',Nuc_alpha(1))
+%     %             'MarkerEdgeColor','k',...
+% %             'MarkerEdgeAlpha',codeAlpha(ci),...
+%     hold on
+% end
+% % Do 2nd nucleation events 2nd
+% for ci = 1:length(sCodes)
+%     codeSub = (Tsub.simpleCode==sCodes(ci) & (Tsub.N_nucl==2 & Tsub.simpleCode>=1));
+%     scatter(Tsub.Psat(codeSub).*Pscale,Tsub.dP_dt_bar(codeSub),msz(codeSub),Tsub.Zw(codeSub),...
+%         'filled',codeMarkers{ci},...
+%         'MarkerEdgeColor',[0.3 0.3 0.3],...
+%         'MarkerEdgeAlpha',codeAlpha(ci),...
+%         'MarkerFaceAlpha',Nuc_alpha(2))
+% end
 
 % --- Psat vs LAST Z_nucl ----
 % yname = 'Final nucleation depth (m)';
 % xname = {'Supersaturation Pressure','P_{H_2O} - P_f (MPa)'};
-% oname = 'sweepScatter_Z_nucl_vs_Psat';
+% % oname = 'sweepScatter_Z_nucl_vs_Psat';
 % legax = 1;
 % for ci = 1:length(sCodes)
 %     codeSub = (Tsub.simpleCode==sCodes(ci) & ~(Tsub.N_nucl==2 & Tsub.simpleCode>=1));
@@ -474,6 +482,36 @@ end
 %         'MarkerFaceAlpha',Nuc_alpha(2))
 % end
 % axis tight
+
+% --- Psat vs n0 ---- MONEY - tight filter for just a few points
+% n_total = (T.n0_excess(codeSub)+1).*T.Cm_0(codeSub);
+% subsetIdx = (T.Z_total ==Ztot(ai) & ...
+%             and(n_total>=0.55,n_total<=0.065) & ...
+%             T.dP );
+% 
+% yname = 'Total gass mass fraction';
+% xname = {'Supersaturation Pressure','P_{H_2O} - P_f (MPa)'};
+% oname = 'sweepScatter_n_tot_vs_Psat_filtered';
+% legax = 1;
+%     for ci = 1:length(sCodes)
+%         codeSub = (Tsub.simpleCode==sCodes(ci) & ~(Tsub.N_nucl==2 & Tsub.simpleCode>=1));
+%         scatter(Tsub.Psat(codeSub).*Pscale,(Tsub.n0_excess(codeSub)+1).*Tsub.Cm_0(codeSub),msz(codeSub),Tsub.Zw(codeSub),...
+%             'filled',codeMarkers{ci},...
+%             'MarkerFaceAlpha',Nuc_alpha(1))
+%         %             'MarkerEdgeColor','k',...
+% %             'MarkerEdgeAlpha',codeAlpha(ci),...
+%         hold on
+%     end
+%     
+%     % Do 2nd nucleation events 2nd
+%     for ci = 1:length(sCodes)
+%         codeSub = (Tsub.simpleCode==sCodes(ci) & (Tsub.N_nucl==2 & Tsub.simpleCode>=1));
+%         scatter(Tsub.Psat(codeSub).*Pscale,(Tsub.n0_excess(codeSub)+1).*Tsub.Cm_0(codeSub),msz(codeSub),Tsub.Zw(codeSub),...
+%             'filled',codeMarkers{ci},...
+%             'MarkerEdgeColor','k',...
+%             'MarkerEdgeAlpha',codeAlpha(ci),...
+%             'MarkerFaceAlpha',Nuc_alpha(2))
+%     end
 
     if ai==1
         ylabel(yname)

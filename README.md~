@@ -21,15 +21,12 @@ Scripts and function to process output of volcanic conduit model parameter sweep
 │   ├── OutcomeCodeTable.csv            <- Raw conduit model outcome code descriptions
 │   └── simplifiedOutComeCodeTable.csv  <- Simplified/plot outcome code descriptions
 │
-├── figures        <- Generated graphics and figures to be used in manuscript or as reference/supplement
-│
-├── figure_scripts <- Matlab scripts that build manuscript and other key figures
+├── # reports          <- Generated analysis as HTML, PDF, LaTeX, etc.
+│   └── figures        <- Generated graphics and figures to be used in reporting
 │
 ├── environment.yml    <- The requirements file for reproducing the analysis environment
 │
-├── set_project_path.m  <- RUN THIS from its directory to add project directories to the matlab path
-│
-├── config.m            <- RUN THIS to get project directories, path, other useful variables
+├── config.m            <- RUN THIS to configure matlab directories, path, other useful variables
 │
 ├── conduit_sweep_scripts <- MATLAB scripts and configuration used to run the conduit model
 │                            parameter sweeps. NOTE: the conduit model itself is not included.
@@ -125,14 +122,9 @@ Secondary data sets generated from processing are in the `/data` folder.
  --> x and y axes will be n0_excess and dP, respectively, and the color axis will be the chosen variable
  --> Will plot one panel for each conduit length/water depth pair
  --> e.g. `plotVariableAllSweeps('n0_total')` or `plotVariableAllSweeps('N_nucl')`
-
  --> Or another great example to show scenarios consistent with a total gas mass fraction of about 0.06:
 ```matlab
-run config.m % Make sure this is in the path
-load(fullfile(DATA_DIR,'ConduitSweepsDataTableB.mat'),'T')
-allax = plotVariableAllSweeps('n0_{total} - 0.06',T.n0_total-0.06);
-set(allax{1},'CLim',[-.01 .01],'Colormap',redblue)
-set(allax{2},'CLim',[-.01 .01],'Colormap',redblue)
+allax = plotVariableAllSweeps('del_n0_total',T.n0_total-0.06); colormap(redblue);
 ```
 
 ## Conduit Model Parameter Sweeps

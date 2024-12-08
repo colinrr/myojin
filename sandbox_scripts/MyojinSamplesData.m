@@ -1,6 +1,7 @@
 %% Make Myojoin sample data table
-run ../config
+run config
 
+%% Reproduce the myojin sample data
 clear my
 % Myojin decompression rate/textural data
 my.ID = ["B17","F19","B2","C16","B17","A24","C18","G22","E18","D10","A13"]';
@@ -27,7 +28,8 @@ my.Properties.VariableDescriptions = [
     "Nucleation depth for rock density = 2600 kg/m^3"
     ];
 
-%% Display the table and properties
+%% Display the table and properties - save or load
+
 disp(my)
 varDescriptions = table(string(my.Properties.VariableNames'), ...
     string(my.Properties.VariableUnits'), ...
@@ -35,7 +37,8 @@ varDescriptions = table(string(my.Properties.VariableNames'), ...
     'VariableNames',["Variable","Unit","Description"]);
 disp(varDescriptions)
 
-save(fullfile(DATA_DIR,'MyojinSampleDataTable.mat'),'my','varDescriptions')
+% save(fullfile(DATA_DIR,'MyojinSampleDataTable.mat'),'my','varDescriptions')
+% load(fullfile(DATA_DIR,'MyojinSampleDataTable.mat'))
 %% Solubility model check
 % Horizontal black lines show Rebecca's reported melt inclusion H2O range
 % Vertical black lines are the 3-5 km depth range
@@ -58,7 +61,15 @@ Z = linspace(0,12000,nz)'; % Depth range to 10 km
 P = 9.81 .* rho_rock .* Z;
 
 
-%% Plot solubility vs pressure depth curves for myojin samples
+%% Plot solubility vs pressure/depth curves for myojin samples
+
+% Figure properties
+figname = 'H2O_solubility_curves';
+figDimensions = [12 16];
+figUnits = 'centimeters';
+fontSize = 8;
+legendFontSize = 8;
+
 sol = zeros(nz,length(rho_rock),length(co2_mole_frac));
 for co = 1:length(co2_mole_frac)
     sol(:,:,co) = meltH2Osolubility(P,co2_mole_frac(co),T_mag);
@@ -74,7 +85,10 @@ hold on
 lh2 =  plot(xlim'.*[1 1],[4.2 6.5].*[1;1],'--k');
 lh3 = plot(xlim,6.*[1;1],'k');
 sh = scatter(my.nucl_P_Pa/1e6, my.h2o_wtp, 'sk');
-legend([lh1 lh2(1) lh3 sh],["Liu et al. (2005) equation","Melt inclusion range","Melt inclusion mean","Myojin detailed samples"],'location','southeast')
+set(gca,'FontSize',fontSize)
+legend([lh1 lh2(1) lh3 sh],...
+    ["Liu et al. (2005) equation","Melt inclusion range","Melt inclusion mean","Myojin detailed samples"],...
+    'location','southeast','fontsize',legendFontSize)
 
 
 subplot(2,1,2)
@@ -90,5 +104,9 @@ grid on
 lh2 =  plot(xlim'.*[1 1],[4.2 6.5].*[1;1],'--k');
 lh3 = plot(xlim,6.*[1;1],'k');
 sh = scatter(my.depth_2600, my.h2o_wtp, 'sk');
-legend([ch{1}; lh2(1); lh3],{'\rho_{rock} = 2400 kg/m^3','\rho_{rock} = 2600 kg/m^3','\rho_{rock} = 2800 kg/m^3',"Melt inclusion range","Melt inclusion mean","Myojin samples, \rho_{rock} = 2600 kg/m^3"},'location','southeast')
+set(gca,'FontSize',fontSize)
+legend([ch{1}; sh],...
+    {'\rho_{rock} = 2400 kg/m^3','\rho_{rock} = 2600 kg/m^3','\rho_{rock} = 2800 kg/m^3',"Myojin samples, \rho_{rock} = 2600 kg/m^3"},...
+    'location','southeast','fontsize',legendFontSize)
 
+printpdf(figname,FIGURES_DIR,figDimensions,figUnits)
