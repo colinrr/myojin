@@ -25,7 +25,7 @@ Scripts and function to process output of volcanic conduit model parameter sweep
 │
 ├── figure_scripts <- Matlab scripts that build manuscript and other key figures
 │
-├── environment.yml    <- The requirements file for reproducing the analysis environment
+├── environment.yml    <- The requirements file for reproducing the python analysis environment
 │
 ├── set_project_path.m  <- RUN THIS from its directory to add project directories to the matlab path
 │
@@ -79,13 +79,36 @@ Secondary data sets generated from processing are in the `/data` folder.
 
 ## Scripts to get started
 `sandbox_scripts/MyojinSamplesData.m`
- -> Run this to generate the myojin sample data table (`data/MyojinSampleDataTable.mat`)
- -> Will also plot solubility for the Myojin sample melt inclusions, and shows the Liu et al. (2005) solubility equation curve.
+- Run this to generate the myojin sample data table (`data/MyojinSampleDataTable.mat`)
+- Will also plot solubility for the Myojin sample melt inclusions, and shows the Liu et al. (2005) solubility equation curve.
 
 `conduit_sweep_scripts/getAllResultsTable.m`
- -> get a suite of summary data for the full set of parameter sweeps, and outputs the resulting data table to `data/ConduitSweepsDataTable`. 
- -> DATA VARIABLES:
-  ---- Scalar input parameters ---- 
+- get a suite of summary data for the full set of parameter sweeps, and outputs the resulting data table to `data/ConduitSweepsDataTable`. 
+- SEE BELOW for the list of table variables
+
+### Handy plotting scripts/function
+`conduit_sweep_scripts/makeSweepScatterPlots.m`
+ - spits out a series of scatter plots to summarize the total set of parameter sweep data
+ - created while exploring the data, but not for final plots
+
+`plotVariableAllSweeps.m`
+ - Plot a single variable - ie any of those listed above - across all model sweeps.
+ - x and y axes will be n0_excess and dP, respectively, and the color axis will be the chosen variable
+ - Will plot one panel for each conduit length/water depth pair
+ - e.g. `plotVariableAllSweeps('n0_total')` or `plotVariableAllSweeps('N_nucl')`
+
+ - Or another great example to show scenarios consistent with a total gas mass fraction of about 0.06:
+```matlab
+run config.m % Make sure this is in the path
+load(fullfile(DATA_DIR,'ConduitSweepsDataTableB.mat'),'T')
+allax = plotVariableAllSweeps('n0_{total} - 0.06',T.n0_total-0.06);
+set(allax{1},'CLim',[-.01 .01],'Colormap',redblue)
+set(allax{2},'CLim',[-.01 .01],'Colormap',redblue)
+```
+### DATA VARIABLES:
+ 
+--- Scalar input parameters ---- 
+  
     Q           : Mass discharge rate (kg/s)
     Z0          : Conduit length (m)
     Zw          : Water depth (m)
@@ -95,12 +118,14 @@ Secondary data sets generated from processing are in the `/data` folder.
     conduit_radius : (m)
 
   ---- Scalar output values ---- 
+  
     OutcomeCode, simpleCode  : see notes on Model Outcome Codes below
     Zf          : Fragmentation depth (m)
     C0          : Initial water solubility of melt (wt.%)
 
 
-  ---- Calculated output fields ---- 
+  ---- Calculated output fields ----
+  
     Z_total       : Conduit length plus water depth (m)
     Csol          : NOT CURRENTLY USED. Can revisit if solublity info
                    is needed to compare with melt inclusion data
@@ -115,31 +140,13 @@ Secondary data sets generated from processing are in the `/data` folder.
     phi_0         : INITIAL porosity (fraction)
     phi_f         : FINAL porosity (at surfac/end) (fraction)
 
-### Handy plotting scripts/function
-`conduit_sweep_scripts/makeSweepScatterPlots.m`
- -> spits out a series of scatter plots to summarize the total set of parameter sweep data
- -> created while exploring the data, but not for final plots
-
-`plotVariableAllSweeps.m`
- --> Plot a single variable - ie any of those listed above - across all model sweeps.
- --> x and y axes will be n0_excess and dP, respectively, and the color axis will be the chosen variable
- --> Will plot one panel for each conduit length/water depth pair
- --> e.g. `plotVariableAllSweeps('n0_total')` or `plotVariableAllSweeps('N_nucl')`
-
- --> Or another great example to show scenarios consistent with a total gas mass fraction of about 0.06:
-```matlab
-run config.m % Make sure this is in the path
-load(fullfile(DATA_DIR,'ConduitSweepsDataTableB.mat'),'T')
-allax = plotVariableAllSweeps('n0_{total} - 0.06',T.n0_total-0.06);
-set(allax{1},'CLim',[-.01 .01],'Colormap',redblue)
-set(allax{2},'CLim',[-.01 .01],'Colormap',redblue)
-```
-
 ## Conduit Model Parameter Sweeps
+
+TODO - preamble and parameter choice
 
 ## Conduit Model Outcome Codes
 
-The conduit model contains a class called OutcomeCode, which interprets the physical result of the simulation. E.g. as explosive and overpressured at the vent, explosive and pressure balanced at the vent, effusive, or an as erroneous results, and so on. The codes come in 2 verions:
+The conduit model contains a class called OutcomeCode, which interprets the physical result of the simulation. E.g. as explosive and overpressured at the vent, explosive and pressure balanced at the vent, effusive, or an as erroneous result, and so on. The outcome codes come in 2 versions:
   1) Raw model outcome codes. These are fairly fine grained and allow for detailed interpretation of results, but are a bit difficult to visualize.
   2) Simplified or Plot codes, in which various raw codes have been lumped together to create a simplified description for easy interpretation and plotting.
 
@@ -149,5 +156,14 @@ For the complete table of codes and their description, see references/OutcomeCod
 
 ### On simplifying outcome codes for plotting purposes
 To create the simplified version of outcome codes for data plots, the following rules are applied to the raw model outcome codes:
-    1)...TO-DO
-    2) ...
+ 1) Almost all invalid effusive results were artifacts of the solution search and could produce valid effusive results, so for plotting we take these as valid effusive results
+```matlab
+invalid_effusive = T.simpleCode==-1;
+T.simpleCode(invalid_effusive) = 1;
+```
+
+2) We are interested only in differentiating fragmenting vs non-fragmenting results for now, so we take both valid_explosive and valid_pressure_balanced as the same.
+```matlab
+valid_expl = T.simpleCode == 3;
+T.simpleCode(valid_expl) = 2;
+```
