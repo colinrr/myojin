@@ -1,5 +1,5 @@
 %% Make Myojoin sample data table
-run config
+% run config
 
 %% Reproduce the myojin sample data
 clear my
@@ -28,6 +28,7 @@ my.Properties.VariableDescriptions = [
     "Nucleation depth for rock density = 2600 kg/m^3"
     ];
 
+print_figs = false;
 %% Display the table and properties - save or load
 
 disp(my)
@@ -109,4 +110,6 @@ legend([ch{1}; sh],...
     {'\rho_{rock} = 2400 kg/m^3','\rho_{rock} = 2600 kg/m^3','\rho_{rock} = 2800 kg/m^3',"Myojin samples, \rho_{rock} = 2600 kg/m^3"},...
     'location','southeast','fontsize',legendFontSize)
 
-printpdf(figname,FIGURES_DIR,figDimensions,figUnits)
+if print_figs
+    printpdf(figname,FIGURES_DIR,figDimensions,figUnits)
+end

@@ -1,26 +1,29 @@
-function varargout = plotVariableAllSweeps(varName, customVar)
+function varargout = plotVariableAllSweeps(varName, customVar, logCax)
 % Easy wrapper to plot a variable field across the various parameter sweeps
 % Can also add 'customVar' to plot your own, just must match the length of
 % the table.
-% 
-% Optionally output the plot axes
+%  - call with no args to show the variable options for plotting
 %
+% Optionally output the plot axes
 if nargin==0
     dispVars = true;
 else
     dispVars = false;
 end
-if nargin<2
+if nargin<2 || isempty(customVar)
     customVar = [];
     useCustomVar = false;
 else
     useCustomVar = true;
 end
+if nargin<3
+    logCax = false;
+end
 
 DeltaP_max = 2e7; % Maximum chamber overpressure to keep
 
 try
-    run ../config
+    run config
 catch
     error('Could not find config.m. Check working directory!')
 end
@@ -73,9 +76,7 @@ lpos = [0.5 1-ppads(4)];
 
 % Outcome alpha mapping
 sCodes = unique(T.simpleCode);
-sCodeDescriptions = ["Intrusive","Effusive","Fragmenting"];
 codeAlpha = (sCodes - min(sCodes)) ./ (max(sCodes) - min(sCodes));
-codeMarkers = {'o','s','^'};
 cax = [];
 
 axout = {};
@@ -101,16 +102,19 @@ for qi = 1:length(Q) % 1 figure per Q
             
             for ci = 1:length(sCodes)
                 codeSub = Tsub.simpleCode==sCodes(ci);
+                [codeMarker, ~, cAlpha] = getCodeMarker(sCodes(ci));
+                
                 scatter(Tsub.n0_excess(codeSub),Tsub.dP(codeSub).*Pscale,msz,cVar(codeSub),...
-                    'filled',codeMarkers{ci},...
+                    'filled',codeMarker,...
                     'MarkerEdgeColor','k',...
-                    'MarkerEdgeAlpha',codeAlpha(ci))
+                    'MarkerEdgeAlpha',cAlpha)
                 hold on
-                lh(ci) = scatter(nan,nan,msz,[0.5 0.5 0.5],...
-                    'filled',codeMarkers{ci},...
-                    'MarkerEdgeColor','k',...
-                    'MarkerEdgeAlpha',codeAlpha(ci),...
-                    'DisplayName','Intrusive');                
+%                 lh(ci) = scatter(nan,nan,msz,[0.5 0.5 0.5],...
+%                     'filled',codeMarker,...
+%                     'MarkerEdgeColor','k',...
+%                     'MarkerEdgeAlpha',codeAlpha(ci),...
+%                     'DisplayName','Intrusive'); 
+
             end
             if zwi==1
                 ylabel('{\Delta}P (MPa)')
@@ -130,14 +134,23 @@ for qi = 1:length(Q) % 1 figure per Q
     for ai = 1:numel(ax)
         caxis(ax(ai),[cax])
     end
-    for ci = 1:length(sCodes)
-        lh(ci) = scatter(nan,nan,msz,[0.5 0.5 0.5],...
-        'filled',codeMarkers{ci},...
-        'MarkerEdgeColor','k',...
-        'MarkerEdgeAlpha',codeAlpha(ci),...
-        'DisplayName',sCodeDescriptions(ci));                
+    if logCax
+        set(gca,'colorscale','log')
     end
-    la = legend(lh,'Location','southoutside','Orientation','horizontal');
+    for ci = [1, 2, 3]  % 1:length(sCodes)
+        [cm, cd, ca] = getCodeMarker(ci-1);
+        lh(ci) = scatter(nan,nan,msz,[0.5 0.5 0.5],...
+        'filled', cm,...
+        'MarkerEdgeColor','k',...
+        'MarkerEdgeAlpha',ca,...
+        'DisplayName',cd);     
+    end
+    try
+        la = legend(lh,'Location','southoutside','Orientation','horizontal');
+    catch ME
+        pause(0.5)
+        
+    end
     set(la,'Position',[0.5-la.Position(3)/2 1-ppads(4)+0.06  la.Position(3) la.Position(4)])
     if nargout == 1
         axout{qi} = ax; 
@@ -150,3 +163,22 @@ if nargout==1
     varargout{1} = axout;
 end
 end
+% 
+% function [codeMarker, codeDesc] = getCodeMarker(codeSub)
+% % codeMarkers = {'o','s','^'};
+% % sCodeDescriptions = ["Intrusive","Effusive","Fragmenting"];
+% 
+%     if codeSub==3 || codeSub==2 % P-bal and explosive frag
+%         codeDesc = "Fragmenting";
+%         codeMarker = '^';
+%     elseif codeSub==1 || codeSub==-1 % Taking all effusive as valid (see Obsidian notes)
+%         codeDesc = "Effusive";
+%         codeMarker = 's';
+%     elseif codeSub==0
+%         codeDesc = "Intrusive";
+%         codeMarker = 'o';
+%     else
+%         codeDesc = "Invalid";
+%         codeMarker = '.';
+%     end
+% end

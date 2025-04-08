@@ -39,7 +39,7 @@ outcomeFile = 'outcomeCodeSummary.mat';
 outcomes = {'OutcomeCode','simpleCode'};                            % Conduit OutcomeCodes
 cI_pars = {'Q','Z0','Zw','dP','n0_excess','N0','conduit_radius'};   % Scalar input parameters
 cO_pars = {'Zf','C0'};                                              % Scalar output parameters
-output_pars = {'Cm_0','Psat','t_ascent','dP_dt_bar',...    % Output fields needing specific retreival methods
+output_pars = {'Cm_0','Psat','t_ascent','dP_dt_bar', 'dP_dt_max',...    % Output fields needing specific retreival methods
     'BND_f','N_nucl','Z_nucl','dZ_nucl','phi_0','phi_f','n0_total'};
 calc_pars = {'Z_total'};                                            % Post-processing calculations
 
@@ -52,7 +52,7 @@ J_threshold = 1e6; % Minimum nucleation rate threshold for tracking nucleation e
 qcplot = true;
 
 % ---- save output table? ----
-saveTable = false;
+saveTable = true;
 % dataSaveDir = '/Users/crrowell/code/research-projects/myojin_knoll/data/';
 outputTableName = 'ConduitSweepsDataTableB.mat';
 
@@ -191,6 +191,7 @@ for fi = 1:length(fn)
     %     Psat          : Max. supersaturation pressure = initial saturation pressure - p_final
     %     t_ascent      : Total modeled ascent time
     %     dP_dt_bar     : AVERAGE decompression rate over modeled rise time
+    %     dP_dt_max     : MAX decompression rate
     %     BND_f         : FINAL bubble number density
     %     N_nucl        : Number of discrete nucleation events
     %     Z_nucl        : Onset depth of discrete nucleation events
@@ -206,7 +207,8 @@ for fi = 1:length(fn)
         if dat(jj).cO.Outcome.Code > -20  && ~any(dat(jj).cO.Z<-10) % Get for non-failed runs
 
             temps.BND_f(jj)     = dat(jj).cO.M0(end);
-            temps.dP_dt_bar(jj) = (dat(jj).cO.pm(1) - dat(jj).cO.pm(end))/dat(jj).cO.t(end);
+            temps.dP_dt_bar(jj) = (dat(jj).cO.pm(1) - dat(jj).cO.pm(end))/dat(jj).cO.t(end); % Taken as the negative
+            temps.dP_dt_max(jj) = max(abs(dat(jj).cO.dPdt));
             temps.Cm_0(jj)      = dat(jj).cO.Cm(1);
             temps.Psat(jj)      = dat(jj).cO.psat(1) - dat(jj).cI.pf;
             temps.t_ascent(jj)  = dat(jj).cO.t(end);
@@ -299,17 +301,7 @@ T = struct2table(T);
 %% Clean simplified outcome codes
 % -> using same methods as in process_conduit_outcomes.process_outcome_codes (py)
 
-% Almost all invalid effusive results were artifacts of the solution
-% search and could produce valid effusive results, so for plotting we take
-% these as valid effusive results
-invalid_effusive = T.simpleCode==-1;
-T.simpleCode(invalid_effusive) = 1;
 
-% We are interested only in differentiating fragmenting vs non-fragmenting
-% results for now, so we take both valid_explosive and
-% valid_pressure_balanced as the same.
-valid_expl = T.simpleCode == 3;
-T.simpleCode(valid_expl) = 2;
 
 % Filter out rows with error results since we can't use these
 removeRows = T.simpleCode <= -2;

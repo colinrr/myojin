@@ -1,6 +1,8 @@
 %% Build some plots from Myojin conduit sweeps data table
 %
 % Tests plots from Nov 2024
+%  -> updated Mar 2025 to include max decomp. rate
+
 
 clear all; % close all
 run config % Assumes run from local file path or that the project root is in the MATLAB path
@@ -328,7 +330,9 @@ sCodes = unique(T.simpleCode);
 
 codeMarkers = {'o','s','h'};
 N_nucl_edge_colors = {'k','k','r'};
-codeAlpha = [.5 1 1];
+% codeAlpha = [.5 1 1];
+codeAlpha = (sCodes - min(sCodes)) ./ (max(sCodes) - min(sCodes));
+
 Nuc_alpha = [0.5 1.0];
 
 figure('position',[50 100 1600 600],'name','Nucleation events, explosivity, and water depth')
@@ -411,10 +415,15 @@ for ai = 1:nc
 %     end
     
 % --- Psat vs Zf ----
-    for ci = 1:length(sCodes)
+yname = 'Fragmentation Depth (m)';
+xname = {'Supersaturation Pressure','P_{H_2O} - P_f (MPa)'};
+oname = 'sweepScatter_Zf_vs_Psat';
+legax = 1;
+for ci = 1:length(sCodes)
         codeSub = (Tsub.simpleCode==sCodes(ci) & ~(Tsub.N_nucl==2 & Tsub.simpleCode>=1));
+        [codeMarker,~] = getCodeMarker(sCodes(ci));
         scatter(Tsub.Psat(codeSub).*Pscale,Tsub.Zf(codeSub),msz(codeSub),Tsub.Zw(codeSub),...
-            'filled',codeMarkers{ci},...
+            'filled',codeMarker,...
             'MarkerFaceAlpha',Nuc_alpha(1))
         %             'MarkerEdgeColor','k',...
 %             'MarkerEdgeAlpha',codeAlpha(ci),...
@@ -424,8 +433,9 @@ for ai = 1:nc
     % Do 2nd nucleation events 2nd
     for ci = 1:length(sCodes)
         codeSub = (Tsub.simpleCode==sCodes(ci) & (Tsub.N_nucl==2 & Tsub.simpleCode>=1));
+        [codeMarker,~] = getCodeMarker(sCodes(ci));
         scatter(Tsub.Psat(codeSub).*Pscale,Tsub.Zf(codeSub),msz(codeSub),Tsub.Zw(codeSub),...
-            'filled',codeMarkers{ci},...
+            'filled',codeMarker,...
             'MarkerEdgeColor','k',...
             'MarkerEdgeAlpha',codeAlpha(ci),...
             'MarkerFaceAlpha',Nuc_alpha(2))
