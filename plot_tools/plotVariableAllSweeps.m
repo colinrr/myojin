@@ -1,10 +1,10 @@
-function varargout = plotVariableAllSweeps(varName, customVar, logCax)
+function varargout = plotVariableAllSweeps(varName, customVar, logCax, forPrint)
 % Easy wrapper to plot a variable field across the various parameter sweeps
 % Can also add 'customVar' to plot your own, just must match the length of
 % the table.
 %  - call with no args to show the variable options for plotting
 %
-% Optionally output the plot axes
+% Optionally output the plot axes, legend and colorbar handles
 if nargin==0
     dispVars = true;
 else
@@ -16,8 +16,11 @@ if nargin<2 || isempty(customVar)
 else
     useCustomVar = true;
 end
-if nargin<3
+if nargin<3 || isempty(logCax)
     logCax = false;
+end
+if nargin<4
+    forPrint = false;
 end
 
 DeltaP_max = 2e7; % Maximum chamber overpressure to keep
@@ -58,21 +61,30 @@ Zw = unique(T.Zw);
 Ztot = unique(T.Z_total);
 
 Pscale = 1/1e6;
+xl = [-0.05 0.85];
+yl = [-.5 20.5];
 
 % Main sweep figure params
 nr = 3;
 nc = 7;
 dx = 0.015;
 dy = 0.11;
-ppads = [0.05 0.15 0.07 0.09];
-msz = 90;
-cbX = 0.86;
-cbdX = 0.025;
-cbY = ppads(3);
-cbdY = 1-sum(ppads(3:4));
-lpos = [0.5 1-ppads(4)];
 
-
+if forPrint
+    msz = 20;
+    ppads = [0.05 0.12 0.07 0.1];
+    cbX = 0.92;
+    cbdX = 0.015;
+    cbY = ppads(3);
+    cbdY = 1-sum(ppads(3:4));
+else
+    msz = 90;
+    ppads = [0.05 0.15 0.07 0.1];
+    cbX = 0.86;
+    cbdX = 0.025;
+    cbY = ppads(3);
+    cbdY = 1-sum(ppads(3:4));
+end
 
 % Outcome alpha mapping
 sCodes = unique(T.simpleCode);
@@ -81,7 +93,7 @@ cax = [];
 
 axout = {};
 for qi = 1:length(Q) % 1 figure per Q
-    figure('position',[10 200 1500 600],'Name',sprintf('Q_0 = 10^%.1f kg/s, %s',log10(Q(qi)),varName))
+    figs{qi} = figure('position',[10 200 1500 600],'Name',sprintf('Q_0 = 10^%.1f kg/s, %s',log10(Q(qi)),varName));
     
     count = 0;
     for zti = 1:length(Ztot) % 1 row per chamber depth bsl
@@ -116,27 +128,43 @@ for qi = 1:length(Q) % 1 figure per Q
 %                     'DisplayName','Intrusive'); 
 
             end
-            if zwi==1
-                ylabel('{\Delta}P (MPa)')
+            
+            xlim(xl)
+            ylim(yl)
+            if forPrint
+                if zwi==1
+                    ylabel('${\Delta}P$ (MPa)', 'Interpreter', 'latex')
+                end
+                if zti==length(Ztot)
+                    xlabel('$n_{0e}$ (wt.\%)', 'Interpreter', 'latex')
+                end
+                title(sprintf('$Z_{tot}$ = %.1f km\n $Z_w$ = %.0f m', Ztot(zti)/1e3,Zw(zwi)), 'Interpreter','latex')
+                if logCax
+                    set(gca,'colorscale','log')
+                end
+            else
+                if zwi==1
+                    ylabel('{\Delta}P (MPa)')
+                end
+                if zti==length(Ztot)
+                    xlabel('Excess H_2O n_{0e} (wt.%)')
+                end
+                title(sprintf('Z_{tot} = %.1f km, Z_w = %.0f m',Ztot(zti)/1e3,Zw(zwi)))
+                if logCax
+                    set(gca,'colorscale','log')
+                end
             end
-            if zti==length(Ztot)
-                xlabel('n_0 excess (wt.%)')
-            end
-            title(sprintf('Z_{tot} = %.1f km, Z_w = %.0f m',Ztot(zti)/1e3,Zw(zwi)))
-%             caxis([0 3])
         end
     end
-    cb = colorbar(gca,'location','eastoutside');
+    cb{qi} = colorbar(gca,'location','eastoutside');
     cax = [min(cax(:,1)) max(cax(:,2))];
 %     caxis(cax);
-    cb.Label.String = strrep(varName,'_','\_');
-    cb.Position = [cbX cbY cbdX cbdY];
+    cb{qi}.Label.String = strrep(varName,'_','\_');
+    cb{qi}.Position = [cbX cbY cbdX cbdY];
     for ai = 1:numel(ax)
         caxis(ax(ai),[cax])
     end
-    if logCax
-        set(gca,'colorscale','log')
-    end
+
     for ci = [1, 2, 3]  % 1:length(sCodes)
         [cm, cd, ca] = getCodeMarker(ci-1);
         lh(ci) = scatter(nan,nan,msz,[0.5 0.5 0.5],...
@@ -146,21 +174,32 @@ for qi = 1:length(Q) % 1 figure per Q
         'DisplayName',cd);     
     end
     try
-        la = legend(lh,'Location','southoutside','Orientation','horizontal');
+        la{qi} = legend(lh,'Location','southoutside','Orientation','horizontal');
     catch ME
         pause(0.5)
+        warning('Error creating legend')
         
     end
-    set(la,'Position',[0.5-la.Position(3)/2 1-ppads(4)+0.06  la.Position(3) la.Position(4)])
-    if nargout == 1
+    set(la{qi},'Position',[0.5-la{qi}.Position(3)/2 1-ppads(4)+0.07  la{qi}.Position(3) la{qi}.Position(4)])
+    if nargout >= 1
         axout{qi} = ax; 
     end
+
 end
 
 
 %% output axes handles?
-if nargout==1
+if nargout>=1
     varargout{1} = axout;
+end
+if nargout >= 2
+    varargout{2} = la;
+end
+if nargout >= 3
+    varargout{3} = cb;
+end
+if nargout >= 4
+    varargout{4} = figs;
 end
 end
 % 
